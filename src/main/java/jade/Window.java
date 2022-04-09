@@ -4,6 +4,7 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFW;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
+import util.Time;
 
 import static java.lang.invoke.MethodHandles.loop;
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
@@ -20,13 +21,43 @@ public class Window {
     private String title;
     private long glfwWindow;
 
+    //color
+    public float r;
+    public float g;
+    public float b;
+    public float a;
+
+    private boolean fadeToBlack;
+
     //on cree la seule fenetre qu'on aura
     private static Window window = null;
+
+    private static Scene currentScene;
     //on cree un constructeur privé pour etre sur de n'avoir qu'une seule fenêtre
     private Window() {
         this.width =1920;
         this.height=1080;
         this.title = "Mario";
+        r=1;
+        g=1;
+        b=1;
+        a=1;
+    }
+
+    public static void  changeScene(int newScene) {
+        switch (newScene) {
+            case 0:
+                currentScene =new LevelEditorScene();
+                //currentScene.init();
+                break;
+            case 1:
+                currentScene = new LevelScene();
+                break;
+            default:
+                //rien a voir mais je viens de catch a quoi les assertion servaient geeksforkeeks mgl
+                assert false: "unknow scene" +newScene;
+                break;
+        }
     }
 
     /**
@@ -43,6 +74,10 @@ public class Window {
 
     }
 
+    /**
+     * ca run le programme avec les methode init et loop
+     * et ca vide la memoire une fois le programe finit
+     */
     public void run(){
         System.out.println("hello LWGL " + Version.getVersion() + "!");
         init();
@@ -101,9 +136,11 @@ public class Window {
         glfwSetCursorPosCallback(glfwWindow,MouseListener::mousePosCallback);
         glfwSetMouseButtonCallback(glfwWindow,MouseListener::mouseButtonCallback);
         glfwSetScrollCallback(glfwWindow,MouseListener::mouseScrollCallback);
+        glfwSetKeyCallback(glfwWindow,KeyListener::keycallback);
         // make the openGLK context current
         glfwMakeContextCurrent(glfwWindow);
         // Enable v-sync
+        // en gros ca gere les fps pour qu'il soit adapte a ton ecran
         glfwSwapInterval(1);
 
         // Make window visible
@@ -116,18 +153,39 @@ public class Window {
         // bindings availaible for use.
         GL.createCapabilities();
 
+        Window.changeScene(0);
+
 
     }
     public void loop(){
+        float beginTime= Time.getTime();
+        float endTime= Time.getTime();
+        float dt = -1.0f;
         while (!glfwWindowShouldClose(glfwWindow)){
             // Poll events
             glfwPollEvents();
 
             //C'est de couleur c'est un format bizarre mais il y'a surement des convertisseur online
-            glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+            glClearColor(r, g, b, a);
             glClear(GL_COLOR_BUFFER_BIT);
 
+            if (dt>=0){
+                currentScene.update(dt);
+            }
+
             glfwSwapBuffers(glfwWindow);
+
+            /*
+            dt ca veux dire delta time je sais c'est stylé
+            en gros end time c'est le temps ou la boucle finit et begin time c'est qd elle commence
+            ca permet de savoir combien de temps la boucle dure
+            on reset le begin time ici et pas en haut pcq le systeme d'exploitation peut faire des choses avant de relancer le while
+            et si on met le resetter en haut ca fausse un peu les résultat
+            non mais imagine c'est quoi 2nano seconde dans un speed run
+             */
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime = endTime;
 
 
         }
