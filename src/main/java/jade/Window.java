@@ -90,6 +90,17 @@ public class Window {
             throw new IllegalStateException("Failled to create the GLFW window");
         }
 
+        /*
+         les deux deux point servent à referencer une methode deja existante
+        dans notre cas ça veut dire que lorsqu'on appelle les methodes de call back de la souris
+         ces méthodes là appellent nos méthodes à la place
+         tout ca vient de la doc de glfw
+         et oui j'utilise le mot doc pour paraitre plus intelligent
+         */
+
+        glfwSetCursorPosCallback(glfwWindow,MouseListener::mousePosCallback);
+        glfwSetMouseButtonCallback(glfwWindow,MouseListener::mouseButtonCallback);
+        glfwSetScrollCallback(glfwWindow,MouseListener::mouseScrollCallback);
         // make the openGLK context current
         glfwMakeContextCurrent(glfwWindow);
         // Enable v-sync
