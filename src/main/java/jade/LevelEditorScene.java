@@ -68,7 +68,7 @@ public class LevelEditorScene extends Scene{
                    x       x
 
 
-                  x       x
+                   x       x
             */
 
             2, 1, 0, // top right triangle
